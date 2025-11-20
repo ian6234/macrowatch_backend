@@ -7,7 +7,7 @@ import pandas as pd
 import math
 import bsm
 
-# API-KEY: 823ad1c875548ff1111d0343ffa23ab0
+# I should put this in an env file but I was in a hurry to upload please dont steal
 
 api_key = '823ad1c875548ff1111d0343ffa23ab0'
 
