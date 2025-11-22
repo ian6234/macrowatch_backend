@@ -46,8 +46,8 @@ def get_rates(bank_id):
 # returns next CB decision date for a given central bank
 def get_next_date(bank_id):
     today = datetime.date.today().strftime('%Y-%m-%d')
-    query = f"select policydates.date from policydates where policydates.bank_id = ? and policydates.date > {today} order by policydates.date asc limit 1"
-    params = (bank_id,)
+    query = f"select policydates.date from policydates where policydates.bank_id = ? and policydates.date > ? order by policydates.date asc limit 1"
+    params = (bank_id, today)
     return get_request(query, params)
 
 
