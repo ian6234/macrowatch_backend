@@ -52,6 +52,8 @@ async def homepage_data():
                  {"name": '5-year', "yield": us_yields[6]}, {"name": '10-year', "yield": us_yields[7]},
                  {"name": '20-year', "yield": us_yields[8]}, {"name": '30-year', "yield": us_yields[9]}]
 
+    spy_data = data_fetcher.fetch_spy_greeks()
+
     return {"rate_forecasts": {
                 "us_forecast": {
                     "id": "Federal Reserve",
@@ -83,11 +85,19 @@ async def homepage_data():
             "options_data":
             {
                 "SPY": {
-                    "id": "SPY",
+                    "id": "S&P 500 Options (SPY ETF)",
                     "strikes": 0,
                     "expiries": 0,
                     "iv_surface": 0,
                     "greeks": 0
+                },
+                "SPY_ATM": {
+                    "id": "S&P 500 Options (SPY ATM)",
+                    "strike": spy_data['SPY_ATM']['STRIKE'],
+                    "underlying": spy_data['SPY_ATM']['UNDERLYING'],
+                    "expiry": spy_data['SPY_ATM']['EXPIRY'],
+                    "implied_vol": spy_data['SPY_ATM']['IV'],
+                    "greeks": spy_data['SPY_ATM']['GREEKS']
                 }
             }
 
