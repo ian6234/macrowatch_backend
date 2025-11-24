@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 
 import requests
 import scipy
@@ -6,6 +6,9 @@ import yfinance as yf
 import pandas as pd
 import math
 import bsm
+import numpy as np
+
+import database_module
 
 # I should put this in an env file but I was in a hurry to upload please dont steal
 
@@ -43,17 +46,51 @@ def fetch_daily_data():
         yield_data[series_id] = yields
     data['yields'].append(yield_data)
 
+    return data
 
+
+def fetch_spy_greeks():
+
+    data = {}
+    data['SPY_ATM'] = {}
+
+    # SPY IV/Greeks data
+    spy_ticker = yf.Ticker('SPY')
+    expiries = spy_ticker.options
+    # Target: 30 day expiry ATM call option
+    target_date = datetime.today() + timedelta(days=30)
+    # gets the time distance from target for each expiry in absolute number of seconds
+    time_deltas = list(map(lambda x: abs((target_date - datetime.strptime(x, '%Y-%m-%d')).total_seconds()), expiries))
+    # get the index for the closest expiry to target
+    closest_expiry = expiries[np.argmin(time_deltas)]
+
+    spy_chain = spy_ticker.option_chain(closest_expiry).calls
+
+    # Next get closest to ATM call contract
+
+    target_strike = spy_ticker.history(period='1d', interval='5m')['Close'][-1]
+
+    strike_index = np.argmin(np.abs(spy_chain['strike'] - target_strike))
+    closest_strike = spy_chain.iloc[strike_index]
+
+    # Calculate time to expiry in years
+    t = (datetime.strptime(expiries[np.argmin(time_deltas)], '%Y-%m-%d') - datetime.today()).total_seconds()/(60*60*24*365)
+
+    # Grab r from our database
+    r, forward_rate_us = database_module.get_rates(1)[0]
+    r = r/100
+    # Calculate iv (data provided by yahoo finance is inaccurate)
+
+    implied_vol = bsm.call_implied_vol(target_strike, closest_strike['strike'], t, r, closest_strike['lastPrice'], 0.15, 50)
+    greeks = bsm.call_greeks(target_strike, closest_strike['strike'], t, r, implied_vol)
+
+    data['SPY_ATM']['STRIKE'] = closest_strike['strike']
+    data['SPY_ATM']['UNDERLYING'] = target_strike
+    data['SPY_ATM']['EXPIRY'] = closest_expiry
+    data['SPY_ATM']['IV'] = implied_vol
+    data['SPY_ATM']['GREEKS'] = greeks
 
     return data
 
 
-def fetch_spy_iv():
-    # SPY IV/Greeks data
-    spy_ticker = yf.Ticker('SPY')
-    expiries = spy_ticker.options
-    print(expiries)
-    for exp in expiries[:5]:
-        spy_options = spy_ticker.option_chain(exp)
-        print(spy_options.calls['impliedVolatility'])
-
+fetch_spy_greeks()
