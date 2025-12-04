@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
+import yfinance as yf
 
 # Internal Imports
 import calculations
@@ -24,16 +25,29 @@ def upload_daily_data():
     database_module.update_daily_data(data)
 
 
+def upload_spy_data():
+    data = data_fetcher.fetch_spy_greeks()
+    # database_module.update_spy_data(data)
+
+
 @app.on_event("startup")
 def startup_event():
     upload_daily_data()
     scheduler.add_job(upload_daily_data, 'interval', days=1)
+    # scheduler.add_job(upload_spy_data, 'interval', hours=1)
     scheduler.start()
 
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        await websocket.send_json({"message": "Hello World"})
 
 
 @app.get("/homepage-data")
