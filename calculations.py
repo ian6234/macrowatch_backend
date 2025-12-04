@@ -1,6 +1,15 @@
 import numpy as np
 
 
+# calculates forward rate between two bonds e.g. (1mo vs 3mo uk gilt)
+def calc_forward_rate(rate_1, rate_2, time_1, time_2):
+    del_time = time_2 - time_1
+    # (1+rate_1)^time_1 * (1+fwd_rate)^del_time = (1+rate_2)^time_2
+    fwd_rate = ((1+rate_2)**time_2 / (1+rate_1)**time_1)**(1/del_time)
+    return fwd_rate-1
+
+
+# linear interpolation of rate decision based on current and forward interest rate
 def fed_rate_odds(current_rate, forward_rate):
 
     possible_set = np.arange(-0.75, 0.75, 0.25)

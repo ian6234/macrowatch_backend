@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timedelta
 
 import requests
@@ -7,6 +8,7 @@ import pandas as pd
 import math
 import bsm
 import numpy as np
+import calculations
 
 import database_module
 
@@ -34,7 +36,11 @@ def fetch_daily_data():
 
     # uk rates data (spot+forward)
 
-    data['rates'].append({'bank_id': 2, 'spot': 4.00, 'forward': 3.94})
+    uk_spot = 0.04041
+    yield_1m = 0.04041
+    yield_3m = 0.03943
+    uk_forward = calculations.calc_forward_rate(yield_1m, yield_3m, 1/12, 3/12)
+    data['rates'].append({'bank_id': 2, 'spot': uk_spot*100, 'forward': uk_forward*100})
 
     # US yields data
     yield_data = {'bank_id': 1}
@@ -92,5 +98,3 @@ def fetch_spy_greeks():
 
     return data
 
-
-fetch_spy_greeks()
