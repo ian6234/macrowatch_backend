@@ -68,6 +68,8 @@ async def homepage_data():
 
     spy_data = data_fetcher.fetch_spy_greeks()
 
+    labels, matrix = data_fetcher.fetch_vol_correlation()
+
     return {"rate_forecasts": {
                 "us_forecast": {
                     "id": "Federal Reserve",
@@ -113,6 +115,11 @@ async def homepage_data():
                     "implied_vol": spy_data['SPY_ATM']['IV'],
                     "greeks": spy_data['SPY_ATM']['GREEKS']
                 }
+            },
+            "correlation_data":
+            {
+                "labels": labels,
+                "matrix": matrix
             }
 
             }
