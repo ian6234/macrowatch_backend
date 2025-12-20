@@ -98,3 +98,15 @@ def fetch_spy_greeks():
 
     return data
 
+
+# fetches prices on several asset classes, calculates 30-day vol and then constructs a correlation matrix
+def fetch_vol_correlation():
+
+    labels = ['SPY', '^FTSE', 'MNQ=F', 'GLD', 'SLV', '^TYX']
+    price_data = yf.download(labels, period='1y', interval='1d')['Close']
+    price_data = price_data.pct_change().dropna()
+    vol_data = price_data.dropna(axis=0, how='any').rolling(window=30, min_periods=1).std().dropna(axis=0)
+
+    matrix = np.corrcoef(vol_data, rowvar=False)
+
+    return labels, matrix.tolist()
